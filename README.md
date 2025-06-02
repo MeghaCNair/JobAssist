@@ -114,12 +114,3 @@ BUCKET_NAME=your_gcs_bucket
 * 📈 Skill gap analysis and learning recommendations
 * 🔄 Daily job update notifications via email or SMS
 
----
-
----
-
-Let me know if you’d like:
-- A one-liner for recruiters on top (like a TL;DR).
-- Deployment instructions (e.g., how to run it on GCP).
-- A shorter "student version" of the README.
-```

@@ -9,6 +9,7 @@
 :root {
   --color-background: #F7F9FA;
   --color-primary: #5A7D9A;
+  --color-primary-dark: #4A6B86;
   --color-secondary: #A3BFD9;
   --color-text: #333D4B;
   --color-accent: #B8E1DD;
@@ -81,24 +82,19 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(90, 125, 154, 0.1);
 }
 
-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: var(--radius-md);
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* Override MUI Button styles */
+.MuiButton-root:hover {
+  background-color: var(--color-primary-dark) !important;
 }
 
-button:hover {
-  background-color: #4A6B86;
+.MuiButton-root.Mui-disabled {
+  background-color: var(--color-secondary) !important;
+  opacity: 0.7;
+}
+
+/* Keep original button styles for non-MUI buttons */
+button:not(.MuiButton-root):hover {
+  opacity: 0.9;
   transform: translateY(-1px);
 }
 

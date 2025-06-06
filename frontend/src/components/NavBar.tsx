@@ -20,11 +20,16 @@ const NavBar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
+  // Only check login status when component mounts
   useEffect(() => {
+    checkLoginStatus();
+  }, []); // Empty dependency array means it only runs once when mounted
+
+  const checkLoginStatus = () => {
     const email = localStorage.getItem('userEmail');
     setIsLoggedIn(!!email);
     setUserEmail(email || '');
-  }, [location.pathname]); // Re-check when route changes
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('userEmail');
@@ -139,6 +144,23 @@ const NavBar = () => {
                   }}
                 >
                   Jobs
+                </Button>
+                <Button
+                  onClick={() => navigate('/jobs/applied')}
+                  sx={{
+                    color: 'var(--color-text)',
+                    fontWeight: isActive('/jobs/applied') ? 600 : 400,
+                    borderBottom: isActive('/jobs/applied') ? 2 : 0,
+                    borderColor: 'var(--color-primary)',
+                    borderRadius: 0,
+                    px: 2,
+                    '&:hover': {
+                      bgcolor: 'transparent',
+                      color: 'var(--color-primary)',
+                    }
+                  }}
+                >
+                  Applied Jobs
                 </Button>
                 <Button
                   onClick={() => navigate('/profile')}

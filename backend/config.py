@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import ConnectionFailure
+import google.generativeai as genai
 
 # Load environment variables from .env in parent directory
 current_dir = os.path.dirname(os.path.abspath(__file__)) 
@@ -14,16 +15,39 @@ if not os.path.exists(env_path):
 load_dotenv(env_path)
 
 # MongoDB setup - Get URI from environment variable
-mongo_uri = os.getenv("MONGO_URI")
-if not mongo_uri:
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is not set")
+
+# GCP credentials setup
+gcp_creds = os.path.join(current_dir, 'job-assist-svc.json')
+if os.path.exists(gcp_creds):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = gcp_creds
+
+# Gemini API configuration
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable is not set")
+
+# Configure Gemini
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-1.5-pro', 
+    generation_config=genai.types.GenerationConfig(
+        temperature=0.2,
+        max_output_tokens=2048,
+        top_k=40,
+        top_p=0.8,
+    )
+)
 
 async def get_database():
     try:
-        # Create async MongoDB client
-        client = AsyncIOMotorClient(mongo_uri)
-        # Get database
-        db = client.jobsearch
+        # Create async MongoDB client using MONGO_URI from env
+        client = AsyncIOMotorClient(MONGO_URI)
+        # Get database name from the URI or use default
+        db_name = MONGO_URI.split('/')[-1].split('?')[0] or "jobsearch"
+        db = client[db_name]
+        
         # Test connection
         await client.admin.command('ping')
         print("Successfully connected to MongoDB")
@@ -38,8 +62,3 @@ async def get_database():
     except ConnectionFailure as e:
         print(f"Error connecting to MongoDB: {str(e)}")
         raise
-
-# GCP credentials setup
-gcp_creds = os.path.join(current_dir, 'job-assist-svc.json')
-if os.path.exists(gcp_creds):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = gcp_creds

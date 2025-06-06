@@ -6,5 +6,7 @@ def user_schema(user):
         "email": user.get("email"),
         "password": user.get("password"),
         "preferences": user.get("preferences", {}),
-        "resume_uploaded": user.get("resume_uploaded", False)
+        "resume_uploaded": user.get("resume_uploaded", False),
+        "applied_jobs": user.get("applied_jobs", []),  # List of job IDs the user has applied to
+        "applied_dates": user.get("applied_dates", {})  # Dictionary of job ID to application date
     }

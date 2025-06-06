@@ -90,4 +90,36 @@ async def analyze_resume(
     except Exception as e:
         error_msg = f"Resume analysis error: {str(e)}"
         print(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
+
+@router.get("/{email}/latest-analysis")
+async def get_latest_analysis(
+    email: str,
+    db=Depends(get_database)
+):
+    try:
+        # Get the latest resume version
+        resume = await db["resumes"].find_one(
+            {"user_email": email},
+            sort=[("version", -1)]
+        )
+        
+        if not resume:
+            raise HTTPException(status_code=404, detail="Resume not found")
+            
+        # Get the analysis from the resume document
+        analysis = resume.get("ai_analysis")
+        if not analysis:
+            return {"message": "No analysis found for this resume"}
+            
+        return {
+            "status": "success",
+            "analysis": analysis
+        }
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        error_msg = f"Error retrieving analysis: {str(e)}"
+        print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg) 

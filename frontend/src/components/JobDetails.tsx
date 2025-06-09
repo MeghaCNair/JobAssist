@@ -11,7 +11,8 @@ import {
   Alert,
   Stack,
   Divider,
-  Modal
+  Modal,
+  LinearProgress
 } from '@mui/material';
 import { 
   Business, 
@@ -392,12 +393,17 @@ const JobDetails = () => {
               }
             }}
           >
-            {applyingToJob ? 'Applying...' : `Apply on ${job.source || 'Company Website'}`}
+            {applyingToJob ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={16} thickness={6} sx={{ color: '#fff' }} />
+                <span>Applying...</span>
+              </Box>
+            ) : `Apply on ${job?.source || 'Company Website'}`}
           </Button>
 
           <Button
             variant="outlined"
-            startIcon={<Description />}
+            startIcon={generatingCoverLetter ? null : <Description />}
             onClick={handleGenerateCoverLetter}
             disabled={applyingToJob || generatingCoverLetter || generatingResumeSuggestions}
             sx={{ 
@@ -407,23 +413,43 @@ const JobDetails = () => {
               py: 1.5,
               borderColor: 'var(--color-primary)',
               color: 'var(--color-primary)',
+              position: 'relative',
               '&:hover': {
                 borderColor: 'var(--color-primary-dark)',
-                bgcolor: 'rgba(var(--color-primary-rgb), 0.04)'
+                bgcolor: 'rgba(90, 125, 154, 0.04)'
               },
               '&:disabled': {
-                borderColor: 'var(--color-secondary)',
-                color: 'var(--color-secondary)',
-                opacity: 0.7
+                borderColor: generatingCoverLetter ? 'var(--color-primary) !important' : 'var(--color-secondary)',
+                color: generatingCoverLetter ? 'var(--color-primary) !important' : 'var(--color-secondary)',
+                opacity: generatingCoverLetter ? 1 : 0.7
               }
             }}
           >
-            {generatingCoverLetter ? 'Generating...' : 'Generate Cover Letter'}
+            {generatingCoverLetter ? (
+              <>
+                <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                  <LinearProgress 
+                    sx={{ 
+                      height: 2,
+                      borderTopLeftRadius: 4,
+                      borderTopRightRadius: 4,
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor: 'var(--color-primary)'
+                      }
+                    }} 
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={16} thickness={6} sx={{ color: 'var(--color-primary)' }} />
+                  <span>Generating...</span>
+                </Box>
+              </>
+            ) : 'Generate Cover Letter'}
           </Button>
 
           <Button
             variant="outlined"
-            startIcon={<Edit />}
+            startIcon={generatingResumeSuggestions ? null : <Edit />}
             onClick={handleEnhanceResume}
             disabled={applyingToJob || generatingCoverLetter || generatingResumeSuggestions}
             sx={{ 
@@ -433,18 +459,38 @@ const JobDetails = () => {
               py: 1.5,
               borderColor: 'var(--color-primary)',
               color: 'var(--color-primary)',
+              position: 'relative',
               '&:hover': {
                 borderColor: 'var(--color-primary-dark)',
-                bgcolor: 'rgba(var(--color-primary-rgb), 0.04)'
+                bgcolor: 'rgba(90, 125, 154, 0.04)'
               },
               '&:disabled': {
-                borderColor: 'var(--color-secondary)',
-                color: 'var(--color-secondary)',
-                opacity: 0.7
+                borderColor: generatingResumeSuggestions ? 'var(--color-primary) !important' : 'var(--color-secondary)',
+                color: generatingResumeSuggestions ? 'var(--color-primary) !important' : 'var(--color-secondary)',
+                opacity: generatingResumeSuggestions ? 1 : 0.7
               }
             }}
           >
-            {generatingResumeSuggestions ? 'Analyzing...' : 'Enhance Resume'}
+            {generatingResumeSuggestions ? (
+              <>
+                <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                  <LinearProgress 
+                    sx={{ 
+                      height: 2,
+                      borderTopLeftRadius: 4,
+                      borderTopRightRadius: 4,
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor: 'var(--color-primary)'
+                      }
+                    }} 
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={16} thickness={6} sx={{ color: 'var(--color-primary)' }} />
+                  <span>Analyzing...</span>
+                </Box>
+              </>
+            ) : 'Enhance Resume'}
           </Button>
         </Box>
 
@@ -534,29 +580,67 @@ const JobDetails = () => {
               maxHeight: '90vh',
               overflow: 'auto',
               p: 4,
+              bgcolor: 'var(--color-white)',
+              borderRadius: 2,
+              boxShadow: 'var(--shadow-lg)',
             }}
           >
-            <Typography variant="h6" gutterBottom>
-              Generated Cover Letter
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  color: 'var(--color-text)',
+                  fontWeight: 600
+                }}
+              >
+                Generated Cover Letter
+              </Typography>
+              <Button
+                variant="outlined"
+                onClick={() => setShowCoverLetter(false)}
+                sx={{
+                  borderColor: 'var(--color-secondary)',
+                  color: 'var(--color-text)',
+                  minWidth: 'auto',
+                  p: 1,
+                  '&:hover': {
+                    borderColor: 'var(--color-primary)',
+                    bgcolor: 'rgba(90, 125, 154, 0.04)'
+                  }
+                }}
+              >
+                ✕
+              </Button>
+            </Box>
             <Typography
               component="pre"
               sx={{
                 whiteSpace: 'pre-wrap',
                 fontFamily: 'inherit',
                 my: 2,
+                color: 'var(--color-text)',
+                lineHeight: 1.6
               }}
             >
               {coverLetter}
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() => {
-                navigator.clipboard.writeText(coverLetter);
-              }}
-            >
-              Copy to Clipboard
-            </Button>
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  navigator.clipboard.writeText(coverLetter);
+                }}
+                sx={{
+                  bgcolor: 'var(--color-primary)',
+                  color: '#fff',
+                  '&:hover': {
+                    bgcolor: 'var(--color-primary-dark)'
+                  }
+                }}
+              >
+                Copy to Clipboard
+              </Button>
+            </Box>
           </Paper>
         </Modal>
 
@@ -577,23 +661,64 @@ const JobDetails = () => {
               maxHeight: '90vh',
               overflow: 'auto',
               p: 4,
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              borderRadius: 1,
+              bgcolor: 'var(--color-white)',
+              borderRadius: 2,
+              boxShadow: 'var(--shadow-lg)',
             }}
           >
-            <Typography variant="h6" gutterBottom>
-              Resume Enhancement Suggestions
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  color: 'var(--color-text)',
+                  fontWeight: 600
+                }}
+              >
+                Resume Enhancement Suggestions
+              </Typography>
+              <Button
+                variant="outlined"
+                onClick={() => setShowResumeSuggestions(false)}
+                sx={{
+                  borderColor: 'var(--color-secondary)',
+                  color: 'var(--color-text)',
+                  minWidth: 'auto',
+                  p: 1,
+                  '&:hover': {
+                    borderColor: 'var(--color-primary)',
+                    bgcolor: 'rgba(90, 125, 154, 0.04)'
+                  }
+                }}
+              >
+                ✕
+              </Button>
+            </Box>
             
             {resumeSuggestions && (
               <Box sx={{ mt: 2 }}>
                 {resumeSuggestions.bullet_points.length > 0 && (
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ color: 'primary.main', mb: 1 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: 'var(--color-primary)',
+                        mb: 2,
+                        fontWeight: 600
+                      }}
+                    >
                       Suggested Bullet Points
                     </Typography>
-                    <Box component="ul" sx={{ m: 0, pl: 3 }}>
+                    <Box 
+                      component="ul" 
+                      sx={{ 
+                        m: 0, 
+                        pl: 3,
+                        '& li': {
+                          color: 'var(--color-text)',
+                          mb: 1
+                        }
+                      }}
+                    >
                       {resumeSuggestions.bullet_points.map((point: string | object, index: number) => (
                         <Box component="li" key={index} sx={{ mb: 1 }}>
                           <Typography variant="body1">
@@ -607,7 +732,14 @@ const JobDetails = () => {
 
                 {resumeSuggestions.skills.length > 0 && (
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ color: 'primary.main', mb: 1 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: 'var(--color-primary)',
+                        mb: 2,
+                        fontWeight: 600
+                      }}
+                    >
                       Skills to Emphasize
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -615,8 +747,14 @@ const JobDetails = () => {
                         <Chip
                           key={index}
                           label={typeof skill === 'string' ? skill : JSON.stringify(skill)}
-                          variant="outlined"
-                          color="primary"
+                          sx={{
+                            bgcolor: 'var(--color-accent)',
+                            color: 'var(--color-text)',
+                            borderColor: 'var(--color-primary)',
+                            '&:hover': {
+                              bgcolor: 'var(--color-secondary)'
+                            }
+                          }}
                         />
                       ))}
                     </Box>
@@ -625,12 +763,29 @@ const JobDetails = () => {
 
                 {resumeSuggestions.achievements.length > 0 && (
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ color: 'primary.main', mb: 1 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: 'var(--color-primary)',
+                        mb: 2,
+                        fontWeight: 600
+                      }}
+                    >
                       Key Achievements
                     </Typography>
-                    <Box component="ul" sx={{ m: 0, pl: 3 }}>
+                    <Box 
+                      component="ul" 
+                      sx={{ 
+                        m: 0, 
+                        pl: 3,
+                        '& li': {
+                          color: 'var(--color-text)',
+                          mb: 1
+                        }
+                      }}
+                    >
                       {resumeSuggestions.achievements.map((achievement: string | object, index: number) => (
-                        <Box component="li" key={index} sx={{ mb: 1 }}>
+                        <Box component="li" key={index}>
                           <Typography variant="body1">
                             {typeof achievement === 'string' ? achievement : JSON.stringify(achievement)}
                           </Typography>
@@ -642,7 +797,14 @@ const JobDetails = () => {
 
                 {resumeSuggestions.keywords.length > 0 && (
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ color: 'primary.main', mb: 1 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: 'var(--color-primary)',
+                        mb: 2,
+                        fontWeight: 600
+                      }}
+                    >
                       Important Keywords
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -651,7 +813,13 @@ const JobDetails = () => {
                           key={index}
                           label={typeof keyword === 'string' ? keyword : JSON.stringify(keyword)}
                           size="small"
-                          color="secondary"
+                          sx={{
+                            bgcolor: 'var(--color-accent)',
+                            color: 'var(--color-text)',
+                            '&:hover': {
+                              bgcolor: 'var(--color-secondary)'
+                            }
+                          }}
                         />
                       ))}
                     </Box>
@@ -660,7 +828,14 @@ const JobDetails = () => {
 
                 {resumeSuggestions.sections.length > 0 && (
                   <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" sx={{ color: 'primary.main', mb: 2 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: 'var(--color-primary)',
+                        mb: 2,
+                        fontWeight: 600
+                      }}
+                    >
                       Suggested Section Changes
                     </Typography>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -670,16 +845,17 @@ const JobDetails = () => {
                           elevation={1}
                           sx={{
                             p: 2,
-                            backgroundColor: 'background.paper',
+                            backgroundColor: 'var(--color-white)',
                             borderLeft: '4px solid',
-                            borderColor: 'primary.main',
+                            borderColor: 'var(--color-primary)',
+                            boxShadow: 'var(--shadow-sm)'
                           }}
                         >
                           <Typography
                             variant="subtitle1"
                             sx={{
                               fontWeight: 600,
-                              color: 'primary.main',
+                              color: 'var(--color-primary)',
                               mb: 1
                             }}
                           >
@@ -688,7 +864,7 @@ const JobDetails = () => {
                           <Typography
                             variant="body2"
                             sx={{
-                              color: 'text.secondary',
+                              color: 'var(--color-text)',
                               whiteSpace: 'pre-wrap'
                             }}
                           >
@@ -706,6 +882,13 @@ const JobDetails = () => {
               <Button
                 variant="contained"
                 onClick={() => setShowResumeSuggestions(false)}
+                sx={{
+                  bgcolor: 'var(--color-primary)',
+                  color: '#fff',
+                  '&:hover': {
+                    bgcolor: 'var(--color-primary-dark)'
+                  }
+                }}
               >
                 Close
               </Button>

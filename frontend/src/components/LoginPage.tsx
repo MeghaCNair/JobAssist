@@ -125,7 +125,7 @@ const LoginPage = () => {
               fontFamily: 'Inter'
             }}
           >
-            Continue your career journey with CareerAssist. Access your profile, track applications, and discover new opportunities.
+            Continue your career journey with NavU - Navigate You. Access your profile, track applications, and discover new opportunities.
           </Typography>
         </Box>
 

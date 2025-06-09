@@ -85,7 +85,7 @@ const NavBar = () => {
                 fontSize: '1.25rem'
               }}
             >
-              CareerAssist
+              NavU
             </Typography>
           </Box>
 
@@ -129,40 +129,6 @@ const NavBar = () => {
             ) : (
               <>
                 <Button
-                  onClick={() => navigate('/jobs')}
-                  sx={{
-                    color: 'var(--color-text)',
-                    fontWeight: isActive('/jobs') ? 600 : 400,
-                    borderBottom: isActive('/jobs') ? 2 : 0,
-                    borderColor: 'var(--color-primary)',
-                    borderRadius: 0,
-                    px: 2,
-                    '&:hover': {
-                      bgcolor: 'transparent',
-                      color: 'var(--color-primary)',
-                    }
-                  }}
-                >
-                  Jobs
-                </Button>
-                <Button
-                  onClick={() => navigate('/jobs/applied')}
-                  sx={{
-                    color: 'var(--color-text)',
-                    fontWeight: isActive('/jobs/applied') ? 600 : 400,
-                    borderBottom: isActive('/jobs/applied') ? 2 : 0,
-                    borderColor: 'var(--color-primary)',
-                    borderRadius: 0,
-                    px: 2,
-                    '&:hover': {
-                      bgcolor: 'transparent',
-                      color: 'var(--color-primary)',
-                    }
-                  }}
-                >
-                  Applied Jobs
-                </Button>
-                <Button
                   onClick={() => navigate('/profile')}
                   startIcon={<PersonIcon />}
                   sx={{
@@ -197,6 +163,40 @@ const NavBar = () => {
                   }}
                 >
                   Resume
+                </Button>
+                <Button
+                  onClick={() => navigate('/jobs')}
+                  sx={{
+                    color: 'var(--color-text)',
+                    fontWeight: isActive('/jobs') ? 600 : 400,
+                    borderBottom: isActive('/jobs') ? 2 : 0,
+                    borderColor: 'var(--color-primary)',
+                    borderRadius: 0,
+                    px: 2,
+                    '&:hover': {
+                      bgcolor: 'transparent',
+                      color: 'var(--color-primary)',
+                    }
+                  }}
+                >
+                  Jobs
+                </Button>
+                <Button
+                  onClick={() => navigate('/jobs/applied')}
+                  sx={{
+                    color: 'var(--color-text)',
+                    fontWeight: isActive('/jobs/applied') ? 600 : 400,
+                    borderBottom: isActive('/jobs/applied') ? 2 : 0,
+                    borderColor: 'var(--color-primary)',
+                    borderRadius: 0,
+                    px: 2,
+                    '&:hover': {
+                      bgcolor: 'transparent',
+                      color: 'var(--color-primary)',
+                    }
+                  }}
+                >
+                  Applied Jobs
                 </Button>
                 <Button
                   variant="outlined"

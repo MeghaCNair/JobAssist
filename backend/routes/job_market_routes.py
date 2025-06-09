@@ -343,7 +343,7 @@ async def delete_job(job_id: str):
 async def vector_search_jobs(
     email: str,
     page: int = Query(1, ge=1, description="Page number"),
-    limit: int = Query(5, ge=1, le=5, description="Items per page"),
+    limit: int = Query(5, ge=1, le=20, description="Items per page"),
 ):
     """Search for jobs using vector similarity with the user's resume and provide AI-curated matching details."""
     try:

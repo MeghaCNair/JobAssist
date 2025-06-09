@@ -13,9 +13,10 @@ import {
   TextField,
   InputAdornment,
   Alert,
-  Paper
+  Paper,
+  LinearProgress
 } from '@mui/material';
-import { LocationOn, Business, AttachMoney, Search, WorkOutline, Psychology } from '@mui/icons-material';
+import { LocationOn, Business, AttachMoney, Search, WorkOutline, Psychology, Description, Edit } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -55,10 +56,15 @@ const JobsPage = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [isVectorSearch, setIsVectorSearch] = useState(false);
+  const [jobLimit, setJobLimit] = useState(5);
   const [analyzingJobs, setAnalyzingJobs] = useState<{ [key: string]: boolean }>({});
   const [initialized, setInitialized] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentController = useRef<AbortController | null>(null);
+  const [aiSearching, setAiSearching] = useState(false);
+  const [generatingCoverLetter, setGeneratingCoverLetter] = useState(false);
+  const [generatingResumeSuggestions, setGeneratingResumeSuggestions] = useState(false);
+  const [applyingToJob, setApplyingToJob] = useState(false);
 
   // Handle initial load and vector search
   useEffect(() => {
@@ -135,13 +141,15 @@ const JobsPage = () => {
     setIsVectorSearch(!isVectorSearch);
     // Reset search term when toggling
     setSearchTerm('');
-    // Fetch jobs with the new search type
-    fetchJobs(!isVectorSearch);
+    // Remove automatic search on toggle
   };
 
   const fetchJobs = async (isVectorFetch: boolean = false) => {
     try {
       setLoading(true);
+      if (isVectorFetch) {
+        setAiSearching(true);
+      }
       setError('');
       
       // Create AbortController for this request
@@ -160,7 +168,7 @@ const JobsPage = () => {
       }
 
       let url = isVectorFetch
-        ? `http://localhost:8000/api/jobs/vector-search/${encodeURIComponent(email)}?page=${page}&limit=${VECTOR_ITEMS_PER_PAGE}`
+        ? `http://localhost:8000/api/jobs/vector-search/${encodeURIComponent(email)}?page=${page}&limit=${jobLimit}`
         : `http://localhost:8000/api/jobs?page=${page}&limit=${REGULAR_ITEMS_PER_PAGE}&email=${encodeURIComponent(email)}`;
 
       if (searchTerm) {
@@ -204,6 +212,7 @@ const JobsPage = () => {
       // Only update loading state if this request wasn't cancelled
       if (!currentController.current?.signal.aborted) {
         setLoading(false);
+        setAiSearching(false);
       }
     }
   };
@@ -275,85 +284,240 @@ const JobsPage = () => {
     );
   };
 
+  const handleGenerateCoverLetter = async () => {
+    setGeneratingCoverLetter(true);
+    try {
+      const email = localStorage.getItem('userEmail');
+      if (!email) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.post(
+        `http://localhost:8000/api/jobs/generate-cover-letter/${encodeURIComponent(email)}`
+      );
+
+      // Handle the generated cover letter
+      console.log('Cover letter generated:', response.data);
+    } catch (err) {
+      console.error('Error generating cover letter:', err);
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        navigate('/login');
+      } else {
+        setError('Failed to generate cover letter. Please try again later.');
+      }
+    } finally {
+      setGeneratingCoverLetter(false);
+    }
+  };
+
+  const handleEnhanceResume = async () => {
+    setGeneratingResumeSuggestions(true);
+    try {
+      const email = localStorage.getItem('userEmail');
+      if (!email) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.post(
+        `http://localhost:8000/api/jobs/enhance-resume/${encodeURIComponent(email)}`
+      );
+
+      // Handle the enhanced resume
+      console.log('Resume enhanced:', response.data);
+    } catch (err) {
+      console.error('Error enhancing resume:', err);
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        navigate('/login');
+      } else {
+        setError('Failed to enhance resume. Please try again later.');
+      }
+    } finally {
+      setGeneratingResumeSuggestions(false);
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Search Section */}
       <Paper 
         elevation={0}
         sx={{ 
-          p: 3, 
+          p: 4, 
           mb: 4, 
-          backgroundColor: 'var(--color-primary)',
-          borderRadius: 2
+          backgroundColor: 'var(--color-white)',
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'var(--color-secondary)',
+          position: 'relative',
+          overflow: 'hidden'
         }}
       >
-        <Typography 
-          variant="h5" 
-          gutterBottom
-          sx={{ 
-            color: '#fff',
-            mb: 2,
-            fontWeight: 500
-          }}
-        >
-          Find Your Next Opportunity
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <TextField
-            fullWidth
-            placeholder="Search jobs by title, skills, or company..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search sx={{ color: 'text.secondary' }} />
-                </InputAdornment>
-              ),
-              sx: {
-                backgroundColor: '#fff',
-                borderRadius: 1,
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'transparent'
-                },
-                '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'transparent'
-                },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'transparent'
+        {aiSearching && (
+          <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+            <LinearProgress 
+              sx={{ 
+                height: 4,
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: 'var(--color-primary)'
                 }
+              }} 
+            />
+            <Typography
+              variant="body2"
+              sx={{
+                position: 'absolute',
+                top: 8,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                color: 'var(--color-primary)',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                px: 2,
+                py: 0.5,
+                borderRadius: 1,
+                fontWeight: 500
+              }}
+            >
+              AI is analyzing your resume and finding the best matches...
+            </Typography>
+          </Box>
+        )}
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              color: 'var(--color-text)',
+              fontWeight: 600
+            }}
+          >
+            Find Your Next Opportunity
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={handleToggleSearchType}
+            startIcon={<WorkOutline />}
+            sx={{
+              borderColor: 'var(--color-primary)',
+              color: 'var(--color-primary)',
+              textTransform: 'none',
+              '&:hover': {
+                borderColor: 'var(--color-primary-dark)',
+                bgcolor: 'rgba(90, 125, 154, 0.04)',
               }
             }}
-          />
+          >
+            {isVectorSearch ? 'Switch to Regular Search' : 'Switch to Resume Match'}
+          </Button>
+        </Box>
+
+        <Typography 
+          variant="body1" 
+          sx={{ 
+            color: 'var(--color-text)',
+            mb: 2
+          }}
+        >
+          {isVectorSearch 
+            ? "Find jobs that match your resume and skills" 
+            : "Search jobs by title, skills, or company"}
+        </Typography>
+
+        <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+          <Box sx={{ position: 'relative', flexGrow: 1 }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'transparent',
+                mb: 1,
+                fontWeight: 500,
+                visibility: 'hidden',
+                height: '20px'
+              }}
+            >
+              Placeholder for alignment
+            </Typography>
+            <TextField
+              fullWidth
+              placeholder={isVectorSearch 
+                ? "Your resume will be used to find matching jobs..." 
+                : "Enter keywords to search jobs..."}
+              value={searchTerm}
+              onChange={handleSearchChange}
+              variant="outlined"
+              disabled={isVectorSearch}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ color: 'text.secondary', ml: 0.5 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: isVectorSearch ? 'rgba(0, 0, 0, 0.04)' : '#fff',
+                  '& input': {
+                    pl: 1,
+                    py: 1.5,
+                  }
+                }
+              }}
+            />
+          </Box>
+
+          {isVectorSearch && (
+            <Box>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'var(--color-text)',
+                  mb: 1,
+                  fontWeight: 500
+                }}
+              >
+                Number of jobs to match
+              </Typography>
+              <TextField
+                type="number"
+                value={jobLimit}
+                onChange={(e) => setJobLimit(Math.min(Math.max(1, parseInt(e.target.value) || 1), 20))}
+                variant="outlined"
+                sx={{
+                  width: '200px',
+                  backgroundColor: '#fff',
+                  '& .MuiOutlinedInput-root': {
+                    '& input': {
+                      py: 1.5,
+                      px: 2,
+                      textAlign: 'left'
+                    }
+                  }
+                }}
+                inputProps={{ 
+                  min: 1, 
+                  max: 20
+                }}
+              />
+            </Box>
+          )}
+
           <Button
             variant="contained"
             onClick={handleSearch}
             sx={{
-              bgcolor: '#fff',
-              color: 'var(--color-primary)',
+              bgcolor: 'var(--color-primary)',
+              color: '#fff',
               minWidth: 120,
+              height: '56px',
+              mt: '28px',
+              textTransform: 'none',
               '&:hover': {
-                bgcolor: '#f5f5f5'
+                bgcolor: 'var(--color-primary-dark)'
               }
             }}
           >
-            Search
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleToggleSearchType}
-            sx={{
-              bgcolor: isVectorSearch ? '#fff' : 'rgba(255, 255, 255, 0.1)',
-              color: isVectorSearch ? 'var(--color-primary)' : '#fff',
-              minWidth: 180,
-              '&:hover': {
-                bgcolor: isVectorSearch ? '#f5f5f5' : 'rgba(255, 255, 255, 0.2)'
-              }
-            }}
-            startIcon={isVectorSearch ? <Psychology /> : <WorkOutline />}
-          >
-            {isVectorSearch ? 'Resume Match' : 'Regular Search'}
+            {isVectorSearch ? 'Match Jobs' : 'Search'}
           </Button>
         </Box>
       </Paper>
@@ -531,6 +695,100 @@ const JobsPage = () => {
               />
             </Box>
           )}
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <Button
+              variant="outlined"
+              startIcon={generatingCoverLetter ? null : <Description />}
+              onClick={handleGenerateCoverLetter}
+              disabled={applyingToJob || generatingCoverLetter || generatingResumeSuggestions}
+              sx={{ 
+                borderRadius: 1,
+                textTransform: 'none',
+                minWidth: 200,
+                py: 1.5,
+                borderColor: 'var(--color-primary)',
+                color: 'var(--color-primary)',
+                position: 'relative',
+                '&:hover': {
+                  borderColor: 'var(--color-primary-dark)',
+                  bgcolor: 'rgba(var(--color-primary-rgb), 0.04)'
+                },
+                '&:disabled': {
+                  borderColor: generatingCoverLetter ? 'var(--color-primary) !important' : 'var(--color-secondary)',
+                  color: generatingCoverLetter ? 'var(--color-primary) !important' : 'var(--color-secondary)',
+                  opacity: generatingCoverLetter ? 1 : 0.7
+                }
+              }}
+            >
+              {generatingCoverLetter ? (
+                <>
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                    <LinearProgress 
+                      sx={{ 
+                        height: 2,
+                        borderTopLeftRadius: 4,
+                        borderTopRightRadius: 4,
+                        '& .MuiLinearProgress-bar': {
+                          bgcolor: 'var(--color-primary)'
+                        }
+                      }} 
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={16} thickness={6} sx={{ color: 'var(--color-primary)' }} />
+                    <span>Generating Cover Letter...</span>
+                  </Box>
+                </>
+              ) : 'Generate Cover Letter'}
+            </Button>
+
+            <Button
+              variant="outlined"
+              startIcon={generatingResumeSuggestions ? null : <Edit />}
+              onClick={handleEnhanceResume}
+              disabled={applyingToJob || generatingCoverLetter || generatingResumeSuggestions}
+              sx={{ 
+                borderRadius: 1,
+                textTransform: 'none',
+                minWidth: 200,
+                py: 1.5,
+                borderColor: 'var(--color-primary)',
+                color: 'var(--color-primary)',
+                position: 'relative',
+                '&:hover': {
+                  borderColor: 'var(--color-primary-dark)',
+                  bgcolor: 'rgba(var(--color-primary-rgb), 0.04)'
+                },
+                '&:disabled': {
+                  borderColor: generatingResumeSuggestions ? 'var(--color-primary) !important' : 'var(--color-secondary)',
+                  color: generatingResumeSuggestions ? 'var(--color-primary) !important' : 'var(--color-secondary)',
+                  opacity: generatingResumeSuggestions ? 1 : 0.7
+                }
+              }}
+            >
+              {generatingResumeSuggestions ? (
+                <>
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                    <LinearProgress 
+                      sx={{ 
+                        height: 2,
+                        borderTopLeftRadius: 4,
+                        borderTopRightRadius: 4,
+                        '& .MuiLinearProgress-bar': {
+                          bgcolor: 'var(--color-primary)'
+                        }
+                      }} 
+                    />
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={16} thickness={6} sx={{ color: 'var(--color-primary)' }} />
+                    <span>Analyzing Resume...</span>
+                  </Box>
+                </>
+              ) : 'Enhance Resume'}
+            </Button>
+          </Box>
         </>
       )}
     </Container>

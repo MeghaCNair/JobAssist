@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import ConnectionFailure
 import google.generativeai as genai
-
+import google.auth
 # Load environment variables from .env in parent directory
 current_dir = os.path.dirname(os.path.abspath(__file__)) 
 parent_dir = os.path.dirname(current_dir)
@@ -19,10 +19,26 @@ MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is not set")
 
-# GCP credentials setup
-gcp_creds = os.path.join(current_dir, 'job-assist-svc.json')
-if os.path.exists(gcp_creds):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = gcp_creds
+import os
+import google.auth
+
+def setup_gcp_credentials():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    gcp_creds = os.path.join(current_dir, 'job-assist-svc.json')
+
+    if os.getenv("K_SERVICE"):
+        # We're running on Cloud Run → do nothing, use Workload Identity
+        print("✔ Running on Cloud Run. Using default credentials.")
+    elif os.path.exists(gcp_creds):
+        # Running locally → use service account JSON
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = gcp_creds
+        print("✔ Running locally. Using job-assist-svc.json.")
+    else:
+        print("❌ GCP credentials not found for local development")
+
+setup_gcp_credentials()
+
+
 
 # Gemini API configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")

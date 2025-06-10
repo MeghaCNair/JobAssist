@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Query, Depends
-from backend.utils.job_scraper import JobMarketScraper
-from backend.data.locations import get_all_locations, get_states, get_major_cities, get_tech_hubs
+from  utils.job_scraper import JobMarketScraper
+from  data.locations import get_all_locations, get_states, get_major_cities, get_tech_hubs
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
-from ..models.job_model import Job
-from ..config import get_database
+from models.job_model import Job
+from config import get_database
 from fastapi.responses import JSONResponse
-from ..utils.job_analysis import (
+from utils.job_analysis import (
     generate_job_match_analysis,
     generate_cover_letter,
     enhance_resume

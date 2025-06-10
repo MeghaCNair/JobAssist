@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from typing import Optional
-from backend.config import get_database
-from backend.services.resume_management import ResumeManagementService
-from backend.services.resume_analysis import ResumeAnalysisService
+from  config import get_database
+from  services.resume_management import ResumeManagementService
+from  services.resume_analysis import ResumeAnalysisService
 
 router = APIRouter()
 

@@ -1,4 +1,4 @@
-from ..config import model
+from config import model
 import re
 
 async def generate_job_match_analysis(

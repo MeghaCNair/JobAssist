@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes import user_routes, resume_routes
-from backend.routes import job_market_routes
+from routes import user_routes, resume_routes
+from routes import job_market_routes
 from dotenv import load_dotenv
 import os
 

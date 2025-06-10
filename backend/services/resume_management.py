@@ -6,7 +6,7 @@ from google.oauth2 import service_account
 from PyPDF2 import PdfReader
 from .embedding_service import EmbeddingService
 import io
-from ..config import model
+from config import model
 from typing import List
 
 class ResumeManagementService:

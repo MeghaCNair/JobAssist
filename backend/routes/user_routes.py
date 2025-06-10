@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from pydantic import BaseModel, EmailStr
-from backend.config import get_database
+from  config import get_database
 from typing import Dict, Optional
 from google.cloud import storage
 from google.cloud import vision

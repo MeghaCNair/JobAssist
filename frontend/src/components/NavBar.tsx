@@ -44,6 +44,7 @@ const NavBar = () => {
     setIsLoggedIn(false);
     setUser(null);
     navigate('/login');
+    window.location.reload();
   };
 
   const isActive = (path: string) => {

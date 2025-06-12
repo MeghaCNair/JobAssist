@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { buildApiUrl } from '../config/api';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/users/login', {
+      const response = await axios.post(buildApiUrl('api/users/login'), {
         email,
         password
       }, {

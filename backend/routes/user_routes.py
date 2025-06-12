@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from google.oauth2 import service_account
 
 # Load environment variables
-load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
+#load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
 router = APIRouter()
 

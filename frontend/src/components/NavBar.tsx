@@ -13,22 +13,28 @@ import WorkIcon from '@mui/icons-material/Work';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import DescriptionIcon from '@mui/icons-material/Description';
+import { useAuth } from '../context/AuthContext';
 
 const NavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, setUser } = useAuth();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
 
-  // Only check login status when component mounts
+  // Check login status when location changes or user context updates
   useEffect(() => {
     checkLoginStatus();
-  }, []); // Empty dependency array means it only runs once when mounted
+  }, [location, user]); // Add location and user as dependencies
 
   const checkLoginStatus = () => {
     const email = localStorage.getItem('userEmail');
+    const name = localStorage.getItem('userName');
     setIsLoggedIn(!!email);
-    setUserEmail(email || '');
+    
+    // Update auth context if needed
+    if (email && name && !user) {
+      setUser({ email, name });
+    }
   };
 
   const handleLogout = () => {
@@ -36,6 +42,7 @@ const NavBar = () => {
     localStorage.removeItem('userName');
     localStorage.removeItem('userPreferences');
     setIsLoggedIn(false);
+    setUser(null);
     navigate('/login');
   };
 

@@ -48,9 +48,9 @@ class JobScraper:
         self.duplicates = 0
 
         # Load environment variables
-        env_path = os.path.join(os.path.dirname(backend_dir), '.env')
-        print(f"\nLooking for .env file at: {env_path}")
-        load_dotenv(env_path)
+        #env_path = os.path.join(os.path.dirname(backend_dir), '.env')
+        #print(f"\nLooking for .env file at: {env_path}")
+        #load_dotenv(env_path)
 
         # Get LinkedIn credentials
         self.linkedin_email = os.getenv("LINKEDIN_EMAIL")

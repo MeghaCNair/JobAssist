@@ -17,6 +17,7 @@ import { LocationOn, Business, AttachMoney, CalendarToday } from '@mui/icons-mat
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
+import { buildApiUrl } from '../config/api';
 
 interface AppliedJob {
   _id: string;
@@ -56,7 +57,7 @@ const AppliedJobs = () => {
       }
 
       const response = await axios.get(
-        `http://localhost:8000/api/jobs/applied/${encodeURIComponent(email)}?page=${page}&limit=6`
+        buildApiUrl(`api/jobs/applied/${encodeURIComponent(email)}?page=${page}&limit=6`)
       );
 
       setJobs(response.data.jobs || []);

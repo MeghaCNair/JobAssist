@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ArrowForward } from '@mui/icons-material';
+import { buildApiUrl } from '../config/api';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const ProfilePage = () => {
         // Properly encode the email for the URL
         const encodedEmail = encodeURIComponent(email);
         
-        const response = await fetch(`http://localhost:8000/api/users/${encodedEmail}`, {
+        const response = await fetch(buildApiUrl(`api/users/${encodedEmail}`), {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -90,7 +91,7 @@ const ProfilePage = () => {
           }
           if (response.status === 404) {
             // If user not found, create a new user profile
-            const createResponse = await fetch('/api/users', {
+            const createResponse = await fetch(buildApiUrl('api/users'), {
               method: 'POST',
               headers: {
                 'Accept': 'application/json',
@@ -226,10 +227,8 @@ const ProfilePage = () => {
         return;
       }
 
-      // Properly encode the email for the URL
       const encodedEmail = encodeURIComponent(email);
-
-      const response = await fetch(`http://localhost:8000/api/users/${encodedEmail}`, {
+      const response = await fetch(buildApiUrl(`api/users/${encodedEmail}`), {
         method: 'PUT',
         headers: {
           'Accept': 'application/json',
@@ -245,11 +244,8 @@ const ProfilePage = () => {
           portfolioUrl: personalInfo.portfolioUrl || '',
           preferences: {
             ...jobPreferences,
-            // Convert skills array to string if it's an array
             skills: Array.isArray(jobPreferences.skills) ? jobPreferences.skills.join(',') : jobPreferences.skills,
-            // Ensure industries is an array
             industries: Array.isArray(jobPreferences.industries) ? jobPreferences.industries : [],
-            // Ensure willRelocate is a boolean
             willRelocate: Boolean(jobPreferences.willRelocate)
           }
         })

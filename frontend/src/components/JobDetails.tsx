@@ -26,6 +26,7 @@ import {
 import axios from 'axios';
 import { format } from 'date-fns';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 
 interface SectionSuggestion {
   section: string;
@@ -82,7 +83,7 @@ const JobDetails = () => {
       try {
         setLoading(true);
         setError('');
-        const response = await axios.get(`http://localhost:8000/api/jobs/${jobId}`);
+        const response = await axios.get(buildApiUrl(`api/jobs/${jobId}`));
         setJob(response.data);
       } catch (err) {
         console.error('Error fetching job details:', err);
@@ -111,7 +112,7 @@ const JobDetails = () => {
 
       // Mark job as applied
       const response = await axios.post(
-        `http://localhost:8000/api/jobs/${jobId}/apply?email=${encodeURIComponent(email)}`
+        buildApiUrl(`api/jobs/${jobId}/apply?email=${encodeURIComponent(email)}`)
       );
 
       if (response.data) {
@@ -143,7 +144,7 @@ const JobDetails = () => {
     setGeneratingCoverLetter(true);
     setAiError('');
     try {
-      const response = await axios.post(`http://localhost:8000/api/jobs/${jobId}/cover-letter/${user.email}`);
+      const response = await axios.post(buildApiUrl(`api/jobs/${jobId}/cover-letter/${user.email}`));
       setCoverLetter(response.data.cover_letter);
       setShowCoverLetter(true);
     } catch (err: any) {
@@ -162,7 +163,7 @@ const JobDetails = () => {
     setGeneratingResumeSuggestions(true);
     setAiError('');
     try {
-      const response = await axios.post(`http://localhost:8000/api/jobs/${jobId}/enhance-resume/${user.email}`);
+      const response = await axios.post(buildApiUrl(`api/jobs/${jobId}/enhance-resume/${user.email}`));
       
       console.log('Resume suggestions response:', response.data);
       

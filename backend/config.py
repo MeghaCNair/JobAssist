@@ -5,14 +5,14 @@ from pymongo.errors import ConnectionFailure
 import google.generativeai as genai
 import google.auth
 # Load environment variables from .env in parent directory
-current_dir = os.path.dirname(os.path.abspath(__file__)) 
-parent_dir = os.path.dirname(current_dir)
-env_path = os.path.join(parent_dir, '.env')
+# current_dir = os.path.dirname(os.path.abspath(__file__)) 
+# parent_dir = os.path.dirname(current_dir)
+# env_path = os.path.join(parent_dir, '.env')
 
-if not os.path.exists(env_path):
-    raise FileNotFoundError(f"Environment file not found at {env_path}")
+# if not os.path.exists(env_path):
+#     raise FileNotFoundError(f"Environment file not found at {env_path}")
 
-load_dotenv(env_path)
+# load_dotenv(env_path)
 
 # MongoDB setup - Get URI from environment variable
 MONGO_URI = os.getenv("MONGO_URI")

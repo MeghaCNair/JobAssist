@@ -8,13 +8,13 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to the backend server
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },
       // Proxy resume endpoints to the backend server
       '/resumes': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       }

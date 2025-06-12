@@ -19,7 +19,7 @@ from services.embedding_service import EmbeddingService
 
 # Load environment variables from root .env file
 root_dir = backend_dir.parent
-load_dotenv(root_dir / '.env')
+#load_dotenv(root_dir / '.env')
 
 async def check_authentication():
     """Check Google Cloud authentication and provide guidance if not authenticated."""

@@ -14,7 +14,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  styled
+  styled,
+  LinearProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -23,19 +24,21 @@ import GetAppIcon from '@mui/icons-material/GetApp';
 import { TextSnippet, Psychology, ExpandMore, ArrowForward, WorkOutline } from '@mui/icons-material';
 import { format, parseISO } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
+import { buildApiUrl } from '../config/api';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 // Hidden input for file upload
-const VisuallyHiddenInput = styled('input')`
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  white-space: nowrap;
-  width: 1px;
-`;
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
 
 interface ResumeVersion {
   version: number;
@@ -56,6 +59,7 @@ const ResumePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(false);
   
   // Resume state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -88,19 +92,19 @@ const ResumePage = () => {
 
       // Fetch current resume URL, versions, and analysis
       const [resumeResponse, versionsResponse, analysisResponse] = await Promise.all([
-        fetch(`http://localhost:8000/resumes/${encodedEmail}`, {
+        fetch(buildApiUrl(`resumes/${encodedEmail}`), {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           }
         }),
-        fetch(`http://localhost:8000/resumes/${encodedEmail}/versions`, {
+        fetch(buildApiUrl(`resumes/${encodedEmail}/versions`), {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           }
         }),
-        fetch(`http://localhost:8000/resumes/${encodedEmail}/latest-analysis`, {
+        fetch(buildApiUrl(`resumes/${encodedEmail}/latest-analysis`), {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -139,7 +143,6 @@ const ResumePage = () => {
         setError('Failed to load resume data. Please try again.');
       }
       
-      // If there's an authentication error, redirect to login
       if (err instanceof Error && err.message.includes('401')) {
         navigate('/login');
       }
@@ -176,8 +179,9 @@ const ResumePage = () => {
     }
 
     try {
-      setLoading(true);
+      setUploadProgress(true);
       setError('');
+      setSuccess('');
       
       const email = localStorage.getItem('userEmail');
       if (!email) {
@@ -187,9 +191,9 @@ const ResumePage = () => {
 
       const formData = new FormData();
       formData.append('file', selectedFile);
-      formData.append('email', email); // No need to encode here as it's form data
+      formData.append('email', email);
 
-      const response = await fetch('http://localhost:8000/resumes/upload', {
+      const response = await fetch(buildApiUrl('resumes/upload'), {
         method: 'POST',
         headers: {
           'Accept': 'application/json'
@@ -197,27 +201,24 @@ const ResumePage = () => {
         body: formData
       });
 
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Server returned non-JSON response');
-      }
-
       if (!response.ok) {
-        if (response.status === 401) {
-          navigate('/login');
-          return;
-        }
         const errorData = await response.json();
         throw new Error(errorData.detail || `Upload failed: HTTP ${response.status}`);
       }
-      
+
       const data = await response.json();
-      setSuccess(`Resume uploaded successfully! (Version ${data.version})`);
-      setSelectedFile(null);
       
-      // Reload resume data
+      // Reset file input and state before loading new data
+      setSelectedFile(null);
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
+
+      // Load new data before showing success message
       await loadResumeData();
+      setSuccess('Resume uploaded successfully!');
+      
     } catch (err) {
       console.error('Upload error:', err);
       if (err instanceof Error) {
@@ -225,13 +226,8 @@ const ResumePage = () => {
       } else {
         setError('Failed to upload resume. Please try again.');
       }
-      
-      // If there's an authentication error, redirect to login
-      if (err instanceof Error && err.message.includes('401')) {
-        navigate('/login');
-      }
     } finally {
-      setLoading(false);
+      setUploadProgress(false);
     }
   };
 
@@ -246,7 +242,7 @@ const ResumePage = () => {
       // Properly encode the email for URL
       const encodedEmail = encodeURIComponent(email);
 
-      const response = await fetch(`http://localhost:8000/resumes/${encodedEmail}/version/${version}`, {
+      const response = await fetch(`${buildApiUrl}/resumes/${encodedEmail}/version/${version}`, {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -289,7 +285,7 @@ const ResumePage = () => {
 
       // First extract text from the resume
       console.log('Extracting text from resume...');
-      const extractResponse = await fetch(`http://localhost:8000/resumes/${encodedEmail}/extract-text${version ? `?version=${version}` : ''}`, {
+      const extractResponse = await fetch(buildApiUrl(`resumes/${encodedEmail}/extract-text${version ? `?version=${version}` : ''}`), {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -304,7 +300,7 @@ const ResumePage = () => {
 
       // Then analyze the resume
       console.log('Analyzing resume...');
-      const response = await fetch(`http://localhost:8000/resumes/${encodedEmail}/analyze${version ? `?version=${version}` : ''}`, {
+      const response = await fetch(buildApiUrl(`resumes/${encodedEmail}/analyze${version ? `?version=${version}` : ''}`), {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -363,7 +359,7 @@ const ResumePage = () => {
       }
 
       // First check if we have a valid embedding
-      const response = await fetch(`http://localhost:8000/resumes/${encodeURIComponent(email)}/extract-text`, {
+      const response = await fetch(buildApiUrl(`resumes/${encodeURIComponent(email)}/extract-text`), {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -462,205 +458,187 @@ const ResumePage = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ position: 'relative' }}>
       <Container maxWidth="md">
-        <Box py={4}>
-          <Typography variant="h4" gutterBottom>
+        <Box sx={{ py: 4 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
             Resume Management
           </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+          {/* Upload Section */}
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              p: 3, 
+              mb: 4, 
+              border: '1px solid',
+              borderColor: 'divider',
+              position: 'relative'
+            }}
+          >
+            {uploadProgress && (
+              <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                <LinearProgress />
+              </Box>
+            )}
 
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {success}
-            </Alert>
-          )}
+            <Typography variant="h6" gutterBottom>
+              Upload Resume
+            </Typography>
 
-          {analysisError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {analysisError}
-            </Alert>
-          )}
-
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6">
-                Resume Upload
-              </Typography>
-              {resumeVersions.length > 0 && (
-                <IconButton 
-                  onClick={() => setShowVersionHistory(!showVersionHistory)}
-                  sx={{ ml: 1 }}
-                >
-                  <HistoryIcon />
-                </IconButton>
-              )}
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              mb: 2,
+              flexWrap: 'nowrap'
+            }}>
               <Button
                 component="label"
                 variant="outlined"
                 startIcon={<CloudUploadIcon />}
+                disabled={uploadProgress}
               >
-                Select Resume
-                <VisuallyHiddenInput 
-                  type="file" 
-                  accept=".pdf,.doc,.docx"
+                Select File
+                <VisuallyHiddenInput
+                  type="file"
                   onChange={handleFileSelect}
+                  accept=".pdf,.doc,.docx"
                 />
               </Button>
-              
-              {selectedFile && (
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <Button
-                    sx={{
-                      bgcolor: 'var(--color-primary)',
-                      color: '#fff',
-                      '&:hover': {
-                        bgcolor: 'var(--color-primary-dark)',
-                      },
-                      '&:disabled': {
-                        bgcolor: 'var(--color-secondary)',
-                        opacity: 0.7
-                      },
-                      textTransform: 'none',
-                      px: 3,
-                      py: 1,
-                      borderRadius: 1
-                    }}
-                    onClick={handleUpload}
-                    disabled={loading}
-                  >
-                    {loading ? 'Uploading...' : 'Upload'}
-                  </Button>
-                </Box>
-              )}
 
-              {resumeUrl && !selectedFile && (
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <Button
-                    sx={{
-                      bgcolor: 'var(--color-primary)',
-                      color: '#fff',
-                      '&:hover': {
-                        bgcolor: 'var(--color-primary-dark)',
-                      },
-                      textTransform: 'none',
-                      px: 3,
-                      py: 1,
-                      borderRadius: 1
-                    }}
-                    onClick={() => window.open(resumeUrl, '_blank')}
-                    startIcon={<GetAppIcon />}
-                  >
-                    View Resume
-                  </Button>
-                  <Button
-                    sx={{
-                      bgcolor: 'var(--color-primary)',
-                      color: '#fff',
-                      '&:hover': {
-                        bgcolor: 'var(--color-primary-dark)',
-                      },
-                      '&:disabled': {
-                        bgcolor: 'var(--color-secondary)',
-                        opacity: 0.7
-                      },
-                      textTransform: 'none',
-                      px: 3,
-                      py: 1,
-                      borderRadius: 1
-                    }}
-                    onClick={() => handleAnalyzeResume()}
-                    disabled={analyzing}
-                    startIcon={<Psychology />}
-                  >
-                    {analyzing ? 'Analyzing...' : 'Get Resume Feedback'}
-                  </Button>
-                  <Button
-                    sx={{
-                      bgcolor: 'var(--color-primary)',
-                      color: '#fff',
-                      '&:hover': {
-                        bgcolor: 'var(--color-primary-dark)',
-                      },
-                      '&:disabled': {
-                        bgcolor: 'var(--color-secondary)',
-                        opacity: 0.7
-                      },
-                      textTransform: 'none',
-                      px: 3,
-                      py: 1,
-                      borderRadius: 1
-                    }}
-                    onClick={handleVectorSearch}
-                    disabled={vectorSearchLoading}
-                    startIcon={<WorkOutline />}
-                  >
-                    {vectorSearchLoading ? 'Searching...' : 'Match with Jobs'}
-                  </Button>
-                </Box>
-              )}
+              <Button
+                variant="contained"
+                onClick={handleUpload}
+                disabled={!selectedFile || uploadProgress}
+                startIcon={uploadProgress ? <CircularProgress size={20} /> : undefined}
+              >
+                {uploadProgress ? 'Uploading...' : 'Upload'}
+              </Button>
             </Box>
+
+            {selectedFile && (
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                Selected file: {selectedFile.name}
+              </Typography>
+            )}
+
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            {success && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                {success}
+              </Alert>
+            )}
           </Paper>
 
-          {showVersionHistory && resumeVersions.length > 0 && (
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Version History
-              </Typography>
-              <List>
-                {resumeVersions.map((version) => (
-                  <ListItem
-                    key={version.version}
-                    sx={{
-                      borderBottom: '1px solid #eee',
-                      '&:last-child': { borderBottom: 'none' },
-                      cursor: 'pointer',
-                      '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.04)' },
-                    }}
-                  >
-                    <ListItemText
-                      primary={`Version ${version.version}`}
-                      secondary={`Uploaded ${formatUploadDate(version.upload_date)} • ${formatFileSize(version.file_size)}`}
-                    />
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton
-                        onClick={() => handleVersionClick(version.version)}
-                        title="Download"
+          {/* Main Content */}
+          {loading && !uploadProgress ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              {/* Current Resume Section */}
+              {resumeUrl && (
+                <Paper 
+                  elevation={0} 
+                  sx={{ 
+                    p: 3, 
+                    mb: 4, 
+                    border: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h6">
+                      Resume Upload
+                    </Typography>
+                    {resumeVersions.length > 0 && (
+                      <IconButton 
+                        onClick={() => setShowVersionHistory(!showVersionHistory)}
+                        sx={{ ml: 1 }}
                       >
-                        <GetAppIcon />
+                        <HistoryIcon />
                       </IconButton>
-                      <IconButton
-                        onClick={() => handleAnalyzeResume(version.version)}
-                        title="AI Analysis"
-                        disabled={analyzing}
-                      >
-                        <Psychology />
-                      </IconButton>
-                    </Box>
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-          )}
+                    )}
+                  </Box>
 
-          {renderAnalysisResults()}
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <Button
+                      sx={{
+                        bgcolor: 'var(--color-primary)',
+                        color: '#fff',
+                        '&:hover': {
+                          bgcolor: 'var(--color-primary-dark)',
+                        },
+                        textTransform: 'none',
+                        px: 3,
+                        py: 1,
+                        borderRadius: 1
+                      }}
+                      onClick={() => window.open(resumeUrl, '_blank')}
+                      startIcon={<GetAppIcon />}
+                    >
+                      View Resume
+                    </Button>
+                    <Button
+                      sx={{
+                        bgcolor: 'var(--color-primary)',
+                        color: '#fff',
+                        '&:hover': {
+                          bgcolor: 'var(--color-primary-dark)',
+                        },
+                        '&:disabled': {
+                          bgcolor: 'var(--color-secondary)',
+                          opacity: 0.7
+                        },
+                        textTransform: 'none',
+                        px: 3,
+                        py: 1,
+                        borderRadius: 1
+                      }}
+                      onClick={() => handleAnalyzeResume()}
+                      disabled={analyzing}
+                      startIcon={<Psychology />}
+                    >
+                      {analyzing ? 'Analyzing...' : 'Get Resume Feedback'}
+                    </Button>
+                    <Button
+                      sx={{
+                        bgcolor: 'var(--color-primary)',
+                        color: '#fff',
+                        '&:hover': {
+                          bgcolor: 'var(--color-primary-dark)',
+                        },
+                        '&:disabled': {
+                          bgcolor: 'var(--color-secondary)',
+                          opacity: 0.7
+                        },
+                        textTransform: 'none',
+                        px: 3,
+                        py: 1,
+                        borderRadius: 1
+                      }}
+                      onClick={handleVectorSearch}
+                      disabled={vectorSearchLoading}
+                      startIcon={<WorkOutline />}
+                    >
+                      {vectorSearchLoading ? 'Searching...' : 'Match with Jobs'}
+                    </Button>
+                  </Box>
+                </Paper>
+              )}
+
+              {/* Analysis Section */}
+              {renderAnalysisResults()}
+            </>
+          )}
         </Box>
       </Container>
 
@@ -711,7 +689,7 @@ const ResumePage = () => {
             }
           }}
         >
-          <ArrowForward sx={{ transform: 'rotate(180deg)' }} />
+          <ArrowForwardIcon sx={{ transform: 'rotate(180deg)' }} />
         </Button>
         <Box
           className="button-label"
@@ -798,7 +776,7 @@ const ResumePage = () => {
             }
           }}
         >
-          <ArrowForward />
+          <ArrowForwardIcon />
         </Button>
       </Paper>
     </Box>

@@ -3,6 +3,7 @@ import { Button, Modal, CircularProgress, Alert, Box, Typography, Paper } from '
 import { Description, Edit } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { buildApiUrl } from '../config/api';
 
 interface JobActionsProps {
   jobId: string;
@@ -22,7 +23,7 @@ const JobActions: React.FC<JobActionsProps> = ({ jobId, onApply }) => {
     setLoading('cover-letter');
     setError('');
     try {
-      const response = await axios.post(`/api/jobs/${jobId}/cover-letter/${user?.email}`);
+      const response = await axios.post(buildApiUrl(`api/jobs/${jobId}/cover-letter/${user?.email}`));
       setCoverLetter(response.data.cover_letter);
       setShowCoverLetter(true);
     } catch (err: any) {
@@ -36,7 +37,7 @@ const JobActions: React.FC<JobActionsProps> = ({ jobId, onApply }) => {
     setLoading('resume');
     setError('');
     try {
-      const response = await axios.post(`/api/jobs/${jobId}/enhance-resume/${user?.email}`);
+      const response = await axios.post(buildApiUrl(`api/jobs/${jobId}/enhance-resume/${user?.email}`));
       setResumeSuggestions(response.data);
       setShowResumeSuggestions(true);
     } catch (err: any) {

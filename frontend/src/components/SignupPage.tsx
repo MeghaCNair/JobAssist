@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { buildApiUrl } from '../config/api';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ const SignupPage = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/users/signup', {
+      const response = await axios.post(buildApiUrl('api/users/signup'), {
         name,
         email,
         password,

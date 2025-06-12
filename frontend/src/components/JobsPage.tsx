@@ -16,10 +16,11 @@ import {
   Paper,
   LinearProgress
 } from '@mui/material';
-import { LocationOn, Business, AttachMoney, Search, WorkOutline, Psychology, Description, Edit } from '@mui/icons-material';
+import { LocationOn, Business, AttachMoney, Search, WorkOutline, Psychology } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
+import { buildApiUrl } from '../config/api';
 
 interface Job {
   _id: string;
@@ -62,9 +63,6 @@ const JobsPage = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentController = useRef<AbortController | null>(null);
   const [aiSearching, setAiSearching] = useState(false);
-  const [generatingCoverLetter, setGeneratingCoverLetter] = useState(false);
-  const [generatingResumeSuggestions, setGeneratingResumeSuggestions] = useState(false);
-  const [applyingToJob, setApplyingToJob] = useState(false);
 
   // Handle initial load and vector search
   useEffect(() => {
@@ -168,8 +166,8 @@ const JobsPage = () => {
       }
 
       let url = isVectorFetch
-        ? `http://localhost:8000/api/jobs/vector-search/${encodeURIComponent(email)}?page=${page}&limit=${jobLimit}`
-        : `http://localhost:8000/api/jobs?page=${page}&limit=${REGULAR_ITEMS_PER_PAGE}&email=${encodeURIComponent(email)}`;
+        ? buildApiUrl(`api/jobs/vector-search/${encodeURIComponent(email)}?page=${page}&limit=${jobLimit}`)
+        : buildApiUrl(`api/jobs?page=${page}&limit=${REGULAR_ITEMS_PER_PAGE}&email=${encodeURIComponent(email)}`);
 
       if (searchTerm) {
         url += `&search=${encodeURIComponent(searchTerm)}`;
@@ -237,7 +235,7 @@ const JobsPage = () => {
       }
 
       const response = await axios.post(
-        `http://localhost:8000/api/jobs/${jobId}/match-analysis/${encodeURIComponent(email)}`
+        buildApiUrl(`api/jobs/${jobId}/match-analysis/${encodeURIComponent(email)}`)
       );
 
       // Update the job with match details and show them
@@ -282,60 +280,6 @@ const JobsPage = () => {
           : job
       )
     );
-  };
-
-  const handleGenerateCoverLetter = async () => {
-    setGeneratingCoverLetter(true);
-    try {
-      const email = localStorage.getItem('userEmail');
-      if (!email) {
-        navigate('/login');
-        return;
-      }
-
-      const response = await axios.post(
-        `http://localhost:8000/api/jobs/generate-cover-letter/${encodeURIComponent(email)}`
-      );
-
-      // Handle the generated cover letter
-      console.log('Cover letter generated:', response.data);
-    } catch (err) {
-      console.error('Error generating cover letter:', err);
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        navigate('/login');
-      } else {
-        setError('Failed to generate cover letter. Please try again later.');
-      }
-    } finally {
-      setGeneratingCoverLetter(false);
-    }
-  };
-
-  const handleEnhanceResume = async () => {
-    setGeneratingResumeSuggestions(true);
-    try {
-      const email = localStorage.getItem('userEmail');
-      if (!email) {
-        navigate('/login');
-        return;
-      }
-
-      const response = await axios.post(
-        `http://localhost:8000/api/jobs/enhance-resume/${encodeURIComponent(email)}`
-      );
-
-      // Handle the enhanced resume
-      console.log('Resume enhanced:', response.data);
-    } catch (err) {
-      console.error('Error enhancing resume:', err);
-      if (axios.isAxiosError(err) && err.response?.status === 401) {
-        navigate('/login');
-      } else {
-        setError('Failed to enhance resume. Please try again later.');
-      }
-    } finally {
-      setGeneratingResumeSuggestions(false);
-    }
   };
 
   return (
@@ -423,7 +367,7 @@ const JobsPage = () => {
             ? "Find jobs that match your resume and skills" 
             : "Search jobs by title, skills, or company"}
         </Typography>
-
+        
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
           <Box sx={{ position: 'relative', flexGrow: 1 }}>
             <Typography 
@@ -608,8 +552,8 @@ const JobsPage = () => {
                     </Box>
                   </Stack>
 
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color="text.secondary"
                     sx={{
                       mb: 2,
@@ -695,100 +639,6 @@ const JobsPage = () => {
               />
             </Box>
           )}
-
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <Button
-              variant="outlined"
-              startIcon={generatingCoverLetter ? null : <Description />}
-              onClick={handleGenerateCoverLetter}
-              disabled={applyingToJob || generatingCoverLetter || generatingResumeSuggestions}
-              sx={{ 
-                borderRadius: 1,
-                textTransform: 'none',
-                minWidth: 200,
-                py: 1.5,
-                borderColor: 'var(--color-primary)',
-                color: 'var(--color-primary)',
-                position: 'relative',
-                '&:hover': {
-                  borderColor: 'var(--color-primary-dark)',
-                  bgcolor: 'rgba(var(--color-primary-rgb), 0.04)'
-                },
-                '&:disabled': {
-                  borderColor: generatingCoverLetter ? 'var(--color-primary) !important' : 'var(--color-secondary)',
-                  color: generatingCoverLetter ? 'var(--color-primary) !important' : 'var(--color-secondary)',
-                  opacity: generatingCoverLetter ? 1 : 0.7
-                }
-              }}
-            >
-              {generatingCoverLetter ? (
-                <>
-                  <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
-                    <LinearProgress 
-                      sx={{ 
-                        height: 2,
-                        borderTopLeftRadius: 4,
-                        borderTopRightRadius: 4,
-                        '& .MuiLinearProgress-bar': {
-                          bgcolor: 'var(--color-primary)'
-                        }
-                      }} 
-                    />
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CircularProgress size={16} thickness={6} sx={{ color: 'var(--color-primary)' }} />
-                    <span>Generating Cover Letter...</span>
-                  </Box>
-                </>
-              ) : 'Generate Cover Letter'}
-            </Button>
-
-            <Button
-              variant="outlined"
-              startIcon={generatingResumeSuggestions ? null : <Edit />}
-              onClick={handleEnhanceResume}
-              disabled={applyingToJob || generatingCoverLetter || generatingResumeSuggestions}
-              sx={{ 
-                borderRadius: 1,
-                textTransform: 'none',
-                minWidth: 200,
-                py: 1.5,
-                borderColor: 'var(--color-primary)',
-                color: 'var(--color-primary)',
-                position: 'relative',
-                '&:hover': {
-                  borderColor: 'var(--color-primary-dark)',
-                  bgcolor: 'rgba(var(--color-primary-rgb), 0.04)'
-                },
-                '&:disabled': {
-                  borderColor: generatingResumeSuggestions ? 'var(--color-primary) !important' : 'var(--color-secondary)',
-                  color: generatingResumeSuggestions ? 'var(--color-primary) !important' : 'var(--color-secondary)',
-                  opacity: generatingResumeSuggestions ? 1 : 0.7
-                }
-              }}
-            >
-              {generatingResumeSuggestions ? (
-                <>
-                  <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
-                    <LinearProgress 
-                      sx={{ 
-                        height: 2,
-                        borderTopLeftRadius: 4,
-                        borderTopRightRadius: 4,
-                        '& .MuiLinearProgress-bar': {
-                          bgcolor: 'var(--color-primary)'
-                        }
-                      }} 
-                    />
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CircularProgress size={16} thickness={6} sx={{ color: 'var(--color-primary)' }} />
-                    <span>Analyzing Resume...</span>
-                  </Box>
-                </>
-              ) : 'Enhance Resume'}
-            </Button>
-          </Box>
         </>
       )}
     </Container>

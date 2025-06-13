@@ -26,6 +26,7 @@ import { format, parseISO } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { buildApiUrl } from '../config/api';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ReactMarkdown from 'react-markdown';
 
 // Hidden input for file upload
 const VisuallyHiddenInput = styled('input')({
@@ -427,9 +428,15 @@ const ResumePage = () => {
             <Typography>Resume Feedback</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-              {analysis.resume_feedback}
-            </Typography>
+            <Box sx={{
+              '& h1, & h2, & h3': { fontWeight: 600, mt: 2, mb: 1 },
+              '& ul': { pl: 3, mb: 2 },
+              '& li': { mb: 0.5 },
+              '& p': { mb: 1 },
+              color: 'text.primary',
+            }}>
+              <ReactMarkdown>{analysis.resume_feedback}</ReactMarkdown>
+            </Box>
           </AccordionDetails>
         </Accordion>
         
@@ -438,9 +445,15 @@ const ResumePage = () => {
             <Typography>Upskilling Suggestions</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-              {analysis.upskilling_suggestions}
-            </Typography>
+            <Box sx={{
+              '& h1, & h2, & h3': { fontWeight: 600, mt: 2, mb: 1 },
+              '& ul': { pl: 3, mb: 2 },
+              '& li': { mb: 0.5 },
+              '& p': { mb: 1 },
+              color: 'text.primary',
+            }}>
+              <ReactMarkdown>{analysis.upskilling_suggestions}</ReactMarkdown>
+            </Box>
           </AccordionDetails>
         </Accordion>
         
@@ -449,9 +462,15 @@ const ResumePage = () => {
             <Typography>Matching Roles</Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-              {analysis.matching_roles}
-            </Typography>
+            <Box sx={{
+              '& h1, & h2, & h3': { fontWeight: 600, mt: 2, mb: 1 },
+              '& ul': { pl: 3, mb: 2 },
+              '& li': { mb: 0.5 },
+              '& p': { mb: 1 },
+              color: 'text.primary',
+            }}>
+              <ReactMarkdown>{analysis.matching_roles}</ReactMarkdown>
+            </Box>
           </AccordionDetails>
         </Accordion>
       </Box>

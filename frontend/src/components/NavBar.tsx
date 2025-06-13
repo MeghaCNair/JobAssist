@@ -93,7 +93,7 @@ const NavBar = () => {
                 fontSize: '1.25rem'
               }}
             >
-              NavU
+              Jobassist
             </Typography>
           </Box>
 

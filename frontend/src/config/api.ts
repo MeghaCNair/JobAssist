@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = 'https://jobassist-backend-46294121978.us-central1.run.app';
 
 // Helper function to build API URLs
 export const buildApiUrl = (endpoint: string): string => {

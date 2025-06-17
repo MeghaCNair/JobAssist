@@ -1,6 +1,8 @@
 
 # JobAssist – AI-Powered Job Recommendation Platform 💼🤖
 
+### Try it out: https://jobassist-frontend-megha-2025.web.app/
+
 🚧 **Note: This project is currently under active development. Features and UI are subject to change.**
 
 JobAssist is an AI-powered web application that helps job seekers discover personalized job opportunities based on their resume, skills, and preferences. Designed for efficiency and scalability, the platform leverages vector search, modern LLMs, and cloud technologies to deliver real-time, relevant recommendations.

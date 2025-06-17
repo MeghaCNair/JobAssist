@@ -26,7 +26,6 @@ import { format, parseISO } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { buildApiUrl } from '../config/api';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ReactMarkdown from 'react-markdown';
 
 // Hidden input for file upload
 const VisuallyHiddenInput = styled('input')({
@@ -414,6 +413,110 @@ const ResumePage = () => {
   const renderAnalysisResults = () => {
     if (!analysis) return null;
 
+    const formatMarkdown = (text: string) => {
+      // Split text into lines
+      const lines = text.split('\n');
+      
+      return lines.map((line, index) => {
+        // Handle headings
+        if (line.startsWith('#')) {
+          const level = line.match(/^#+/)?.[0].length || 1;
+          const content = line.replace(/^#+\s*/, '');
+          return (
+            <Typography
+              key={index}
+              variant={level === 1 ? 'h5' : level === 2 ? 'h6' : 'subtitle1'}
+              sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}
+            >
+              {content}
+            </Typography>
+          );
+        }
+
+        // Handle bullet points
+        if (line.trim().startsWith('- ')) {
+          const content = line.replace(/^-\s*/, '');
+          // Process bold text within bullet points
+          const parts = content.split(/(\*\*.*?\*\*)/g);
+          return (
+            <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, pl: 2 }}>
+              <Typography sx={{ mr: 1, mt: 0.5 }}>•</Typography>
+              <Typography>
+                {parts.map((part, i) => {
+                  if (part.startsWith('**') && part.endsWith('**')) {
+                    return (
+                      <Typography
+                        key={i}
+                        component="span"
+                        sx={{ fontWeight: 'bold' }}
+                      >
+                        {part.slice(2, -2)}
+                      </Typography>
+                    );
+                  }
+                  return part;
+                })}
+              </Typography>
+            </Box>
+          );
+        }
+
+        // Handle numbered lists
+        if (/^\d+\.\s/.test(line)) {
+          const number = line.match(/^\d+/)?.[0];
+          const content = line.replace(/^\d+\.\s*/, '');
+          // Process bold text within numbered lists
+          const parts = content.split(/(\*\*.*?\*\*)/g);
+          return (
+            <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', mb: 1, pl: 2 }}>
+              <Typography sx={{ mr: 1, minWidth: '1.5rem' }}>{number}.</Typography>
+              <Typography>
+                {parts.map((part, i) => {
+                  if (part.startsWith('**') && part.endsWith('**')) {
+                    return (
+                      <Typography
+                        key={i}
+                        component="span"
+                        sx={{ fontWeight: 'bold' }}
+                      >
+                        {part.slice(2, -2)}
+                      </Typography>
+                    );
+                  }
+                  return part;
+                })}
+              </Typography>
+            </Box>
+          );
+        }
+
+        // Regular text with bold formatting
+        if (line.trim()) {
+          const parts = line.split(/(\*\*.*?\*\*)/g);
+          return (
+            <Typography key={index} sx={{ mb: 1 }}>
+              {parts.map((part, i) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return (
+                    <Typography
+                      key={i}
+                      component="span"
+                      sx={{ fontWeight: 'bold' }}
+                    >
+                      {part.slice(2, -2)}
+                    </Typography>
+                  );
+                }
+                return part;
+              })}
+            </Typography>
+          );
+        }
+
+        return null;
+      });
+    };
+
     return (
       <Box sx={{ mt: 3 }}>
         <Typography variant="h6" gutterBottom>
@@ -429,13 +532,14 @@ const ResumePage = () => {
           </AccordionSummary>
           <AccordionDetails>
             <Box sx={{
-              '& h1, & h2, & h3': { fontWeight: 600, mt: 2, mb: 1 },
-              '& ul': { pl: 3, mb: 2 },
-              '& li': { mb: 0.5 },
-              '& p': { mb: 1 },
-              color: 'text.primary',
+              bgcolor: 'grey.50',
+              borderRadius: 2,
+              p: 2,
+              border: '1px solid',
+              borderColor: 'grey.200',
+              mb: 1
             }}>
-              <ReactMarkdown>{analysis.resume_feedback}</ReactMarkdown>
+              {formatMarkdown(analysis.resume_feedback)}
             </Box>
           </AccordionDetails>
         </Accordion>
@@ -446,13 +550,14 @@ const ResumePage = () => {
           </AccordionSummary>
           <AccordionDetails>
             <Box sx={{
-              '& h1, & h2, & h3': { fontWeight: 600, mt: 2, mb: 1 },
-              '& ul': { pl: 3, mb: 2 },
-              '& li': { mb: 0.5 },
-              '& p': { mb: 1 },
-              color: 'text.primary',
+              bgcolor: 'grey.50',
+              borderRadius: 2,
+              p: 2,
+              border: '1px solid',
+              borderColor: 'grey.200',
+              mb: 1
             }}>
-              <ReactMarkdown>{analysis.upskilling_suggestions}</ReactMarkdown>
+              {formatMarkdown(analysis.upskilling_suggestions)}
             </Box>
           </AccordionDetails>
         </Accordion>
@@ -463,13 +568,14 @@ const ResumePage = () => {
           </AccordionSummary>
           <AccordionDetails>
             <Box sx={{
-              '& h1, & h2, & h3': { fontWeight: 600, mt: 2, mb: 1 },
-              '& ul': { pl: 3, mb: 2 },
-              '& li': { mb: 0.5 },
-              '& p': { mb: 1 },
-              color: 'text.primary',
+              bgcolor: 'grey.50',
+              borderRadius: 2,
+              p: 2,
+              border: '1px solid',
+              borderColor: 'grey.200',
+              mb: 1
             }}>
-              <ReactMarkdown>{analysis.matching_roles}</ReactMarkdown>
+              {formatMarkdown(analysis.matching_roles)}
             </Box>
           </AccordionDetails>
         </Accordion>
@@ -693,6 +799,7 @@ const ResumePage = () => {
         <Button
           onClick={() => navigate('/profile')}
           title="Back to Profile"
+          className="side-nav"
           sx={{
             color: '#fff',
             minWidth: 'auto',
@@ -702,10 +809,7 @@ const ResumePage = () => {
             transition: 'all 0.2s ease-in-out',
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center',
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 0.1)',
-            }
+            alignItems: 'center'
           }}
         >
           <ArrowForwardIcon sx={{ transform: 'rotate(180deg)' }} />
@@ -780,6 +884,7 @@ const ResumePage = () => {
         <Button
           onClick={() => navigate('/jobs')}
           title="Go to Jobs"
+          className="side-nav"
           sx={{
             color: '#fff',
             minWidth: 'auto',
@@ -789,10 +894,7 @@ const ResumePage = () => {
             transition: 'all 0.2s ease-in-out',
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center',
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 0.1)',
-            }
+            alignItems: 'center'
           }}
         >
           <ArrowForwardIcon />

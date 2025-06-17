@@ -166,12 +166,7 @@ const ProfilePage = () => {
           });
 
           // Set profile complete if essential fields are filled
-          setIsProfileComplete(
-            Boolean(data.user.name) &&
-            Boolean(data.user.email) &&
-            Boolean(preferences.desiredRole) &&
-            Boolean(preferences.desiredLocation)
-          );
+          setIsProfileComplete(true); // Set to true for existing profiles
           setIsLoaded(true);
         }
       } catch (err) {

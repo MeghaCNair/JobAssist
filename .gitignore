@@ -44,3 +44,4 @@ service_account.b64.txt
 frontend/.firebase/
 frontend/firebase.json
 frontend/.firebaserc
+deploy_backend.ps1

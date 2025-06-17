@@ -135,11 +135,15 @@ const JobsPage = () => {
     }
   };
 
-  const handleToggleSearchType = () => {
-    setIsVectorSearch(!isVectorSearch);
+  const handleToggleSearchType = async () => {
+    const newIsVectorSearch = !isVectorSearch;
+    setIsVectorSearch(newIsVectorSearch);
     // Reset search term when toggling
     setSearchTerm('');
-    // Remove automatic search on toggle
+    // Only fetch jobs if switching to regular search
+    if (!newIsVectorSearch) {
+      await fetchJobs(false);
+    }
   };
 
   const fetchJobs = async (isVectorFetch: boolean = false) => {

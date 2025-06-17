@@ -83,8 +83,13 @@ textarea:focus {
 }
 
 /* Override MUI Button styles */
+.MuiButton-root {
+  transition: all 0.2s ease-in-out !important;
+}
+
 .MuiButton-root:hover {
-  background-color: var(--color-primary-dark) !important;
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
 }
 
 .MuiButton-root.Mui-disabled {
@@ -107,6 +112,24 @@ button:disabled {
   background-color: var(--color-secondary);
   cursor: not-allowed;
   transform: none;
+}
+
+/* Navigation button hover styles */
+.MuiButton-root[class*="MuiButton-text"]:hover {
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
+}
+
+.MuiButton-root[class*="MuiButton-outlined"]:hover {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: #fff !important;
+}
+
+/* Side navigation buttons */
+.MuiButton-root[class*="side-nav"]:hover {
+  background-color: var(--color-primary) !important;
+  color: #fff !important;
 }
 
 /* Error Text */

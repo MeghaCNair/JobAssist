@@ -150,7 +150,7 @@ const SignupPage = () => {
               fontFamily: 'Inter'
             }}
           >
-            Join NavU - Navigate You to kickstart your professional journey. Create a profile, showcase your skills, and connect with opportunities that match your career goals.
+            Join Jobassist to kickstart your professional journey. Create a profile, showcase your skills, and connect with opportunities that match your career goals.
           </Typography>
         </Box>
 

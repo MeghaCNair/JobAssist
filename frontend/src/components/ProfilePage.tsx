@@ -166,12 +166,7 @@ const ProfilePage = () => {
           });
 
           // Set profile complete if essential fields are filled
-          setIsProfileComplete(
-            data.user.name && 
-            data.user.email && 
-            preferences.desiredRole && 
-            preferences.desiredLocation
-          );
+          setIsProfileComplete(true); // Set to true for existing profiles
           setIsLoaded(true);
         }
       } catch (err) {
@@ -271,6 +266,12 @@ const ProfilePage = () => {
       
       const data = await response.json();
       setSuccess('Profile updated successfully!');
+      setIsProfileComplete(
+        Boolean(personalInfo.name) &&
+        Boolean(personalInfo.email) &&
+        Boolean(jobPreferences.desiredRole) &&
+        Boolean(jobPreferences.desiredLocation)
+      );
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       console.error('Profile update error:', err);

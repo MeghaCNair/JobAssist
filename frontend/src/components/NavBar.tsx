@@ -44,6 +44,7 @@ const NavBar = () => {
     setIsLoggedIn(false);
     setUser(null);
     navigate('/login');
+    window.location.reload();
   };
 
   const isActive = (path: string) => {
@@ -92,7 +93,7 @@ const NavBar = () => {
                 fontSize: '1.25rem'
               }}
             >
-              NavU
+              Jobassist
             </Typography>
           </Box>
 

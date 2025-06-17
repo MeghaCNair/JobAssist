@@ -85,8 +85,8 @@ async def login(request: LoginRequest, db=Depends(get_database)):
     try:
         users_collection = db["users"]
 
-        # Find user by email
-        user = await users_collection.find_one({"email": request.email})
+        # Find user by email (lowercase)
+        user = await users_collection.find_one({"email": request.email.lower()})
         
         # Check credentials (NOTE: Use hashed passwords in production)
         if user and user["password"] == request.password:
@@ -114,18 +114,18 @@ async def signup(request: SignupRequest, db=Depends(get_database)):
     try:
         users_collection = db["users"]
 
-        # Check if user already exists
-        existing_user = await users_collection.find_one({"email": request.email})
+        # Check if user already exists (lowercase)
+        existing_user = await users_collection.find_one({"email": request.email.lower()})
         if existing_user:
             raise HTTPException(
                 status_code=400,
                 detail="User with this email already exists"
             )
 
-        # Create new user document
+        # Create new user document (store email as lowercase)
         new_user = {
             "name": request.name,
-            "email": request.email,
+            "email": request.email.lower(),
             "password": request.password,  # NOTE: Hash password in production
             "preferences": request.preferences,
             "resume_uploaded": False
@@ -139,7 +139,7 @@ async def signup(request: SignupRequest, db=Depends(get_database)):
                 "status": "success",
                 "message": "User registered successfully",
                 "user": {
-                    "email": request.email,
+                    "email": new_user["email"],
                     "name": request.name,
                     "preferences": request.preferences,
                     "resume_uploaded": False
@@ -162,11 +162,10 @@ async def signup(request: SignupRequest, db=Depends(get_database)):
 async def get_user_profile(email: str, db=Depends(get_database)):
     try:
         users_collection = db["users"]
-        user = await users_collection.find_one({"email": email})
-        
+        # Always query with lowercase email
+        user = await users_collection.find_one({"email": email.lower()})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-            
         return {
             "status": "success",
             "user": {
@@ -181,7 +180,6 @@ async def get_user_profile(email: str, db=Depends(get_database)):
                 "resume_uploaded": user.get("resume_uploaded", False)
             }
         }
-        
     except HTTPException as he:
         raise he
     except Exception as e:
@@ -193,16 +191,15 @@ async def get_user_profile(email: str, db=Depends(get_database)):
 async def update_user_preferences(email: str, request: UpdateUserRequest, db=Depends(get_database)):
     try:
         users_collection = db["users"]
-        
+        email = email.lower()
         # Check if user exists
         user = await users_collection.find_one({"email": email})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-            
         # Update user document with all fields
         update_data = {
             "name": request.name,
-            "email": request.email,
+            "email": request.email.lower(),
             "phone": request.phone,
             "location": request.location,
             "linkedinUrl": request.linkedinUrl,
@@ -210,15 +207,12 @@ async def update_user_preferences(email: str, request: UpdateUserRequest, db=Dep
             "portfolioUrl": request.portfolioUrl,
             "preferences": request.preferences
         }
-        
         # Remove None values
         update_data = {k: v for k, v in update_data.items() if v is not None}
-        
         result = await users_collection.update_one(
             {"email": email},
             {"$set": update_data}
         )
-        
         # Get updated user - whether modified or not
         updated_user = await users_collection.find_one({"email": email})
         if updated_user:
@@ -241,7 +235,6 @@ async def update_user_preferences(email: str, request: UpdateUserRequest, db=Dep
                 status_code=500,
                 detail="Failed to retrieve updated user"
             )
-            
     except HTTPException as he:
         raise he
     except Exception as e:

@@ -39,3 +39,9 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+dockerCommand.txt
+service_account.b64.txt
+frontend/.firebase/
+frontend/firebase.json
+frontend/.firebaserc
+deploy_backend.ps1
